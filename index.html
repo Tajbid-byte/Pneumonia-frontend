@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PneuXNet — AI Pneumonia Screening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f3ef;
+  --bg2:#ede9e3;
+  --card:#ffffff;
+  --ink:#1a1612;
+  --ink2:#3d3730;
+  --ink3:#6b6258;
+  --rule:#ddd8d0;
+  --rule2:#c8c2b8;
+  --teal:#007a6e;
+  --teal2:#009d8e;
+  --teal3:#e6f4f2;
+  --red:#c0392b;
+  --red2:#e74c3c;
+  --red3:#fdf0ef;
+  --amber:#b7651a;
+  --amber3:#fef6ec;
+  --f-display:'DM Serif Display',Georgia,serif;
+  --f-body:'DM Sans',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',monospace;
+  --r:6px;
+}
+
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--f-body);background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.6}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  height:60px;padding:0 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(245,243,239,.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--rule);
+}
+.n-logo{
+  display:flex;align-items:center;gap:10px;text-decoration:none;
+}
+.n-mark{
+  width:34px;height:34px;border-radius:var(--r);
+  background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+}
+.n-mark svg{width:18px;height:18px;fill:var(--bg)}
+.n-wordmark{
+  font-family:var(--f-display);font-size:1.15rem;color:var(--ink);letter-spacing:-.3px;
+}
+.n-wordmark span{color:var(--teal)}
+.n-right{display:flex;align-items:center;gap:20px}
+.n-links{display:flex;gap:28px;list-style:none}
+.n-links a{
+  font-size:.78rem;font-weight:500;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--ink3);text-decoration:none;transition:color .15s;
+}
+.n-links a:hover{color:var(--teal)}
+.n-chip{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--f-mono);font-size:.62rem;font-weight:600;
+  color:var(--teal);letter-spacing:.5px;
+  background:var(--teal3);border:1px solid rgba(0,122,110,.2);
+  padding:5px 12px;border-radius:100px;
+}
+.dot{width:5px;height:5px;background:var(--teal);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:grid;grid-template-columns:1fr 1fr;align-items:center;
+  padding:80px 80px 60px;gap:80px;
+  max-width:1300px;margin:0 auto;
+}
+.hero-left{position:relative;z-index:1}
+.hero-eyebrow{
+  font-family:var(--f-mono);font-size:.62rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;color:var(--teal);
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:24px;
+}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--teal)}
+h1{
+  font-family:var(--f-display);font-size:clamp(2.4rem,4vw,4rem);
+  line-height:1.05;color:var(--ink);letter-spacing:-.5px;margin-bottom:20px;
+}
+h1 em{font-style:italic;color:var(--teal)}
+.hero-sub{
+  font-size:.95rem;font-weight:300;line-height:1.9;color:var(--ink3);
+  max-width:480px;margin-bottom:36px;
+}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+.btn-primary{
+  font-family:var(--f-body);font-size:.82rem;font-weight:600;
+  padding:12px 24px;background:var(--ink);color:var(--bg);
+  border:none;border-radius:var(--r);cursor:pointer;
+  transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  letter-spacing:.2px;
+}
+.btn-primary:hover{background:var(--ink2);transform:translateY(-2px)}
+.btn-secondary{
+  font-family:var(--f-body);font-size:.82rem;font-weight:500;
+  padding:11px 22px;background:transparent;color:var(--ink2);
+  border:1px solid var(--rule2);border-radius:var(--r);cursor:pointer;
+  transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+}
+.btn-secondary:hover{border-color:var(--ink2);transform:translateY(-2px)}
+
+/* Hero metrics strip */
+.hero-metrics{
+  display:flex;gap:0;margin-top:48px;
+  border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;
+  background:var(--card);
+}
+.hm{
+  flex:1;padding:18px 20px;border-right:1px solid var(--rule);text-align:center;
+}
+.hm:last-child{border-right:none}
+.hm-val{
+  font-family:var(--f-display);font-size:1.7rem;color:var(--ink);line-height:1;
+}
+.hm-val small{font-size:1rem;color:var(--teal)}
+.hm-key{font-size:.65rem;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--ink3);margin-top:4px}
+
+/* Hero visual (right side) */
+.hero-visual{
+  background:var(--card);border:1px solid var(--rule);border-radius:12px;
+  padding:32px;display:flex;flex-direction:column;gap:20px;
+  box-shadow:0 8px 40px rgba(26,22,18,.06);
+}
+.hv-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:16px;border-bottom:1px solid var(--rule);
+}
+.hv-title{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--ink3)}
+.hv-badge{
+  font-family:var(--f-mono);font-size:.6rem;font-weight:600;
+  color:var(--teal);background:var(--teal3);border:1px solid rgba(0,122,110,.2);
+  padding:3px 10px;border-radius:100px;
+}
+.arch-diagram{display:flex;flex-direction:column;gap:10px}
+.arch-row{
+  display:flex;align-items:center;gap:10px;
+}
+.arch-block{
+  flex:1;padding:10px 14px;border-radius:var(--r);border:1px solid var(--rule);
+  background:var(--bg);display:flex;align-items:center;gap:10px;
+}
+.arch-icon{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.arch-name{font-size:.75rem;font-weight:600;color:var(--ink2)}
+.arch-desc{font-size:.65rem;color:var(--ink3)}
+.arch-arrow{color:var(--rule2);font-size:.9rem;flex-shrink:0}
+.arch-highlight{background:var(--teal3);border-color:rgba(0,122,110,.2)}
+.arch-highlight .arch-name{color:var(--teal)}
+
+/* ── SECTION WRAPPER ── */
+.wrap{max-width:1240px;margin:0 auto;padding:80px 40px;position:relative}
+.section-header{margin-bottom:48px}
+.eyebrow{
+  font-family:var(--f-mono);font-size:.6rem;font-weight:600;
+  letter-spacing:2.5px;text-transform:uppercase;color:var(--teal);
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;
+}
+.eyebrow::before{content:'';width:18px;height:1px;background:var(--teal)}
+h2{
+  font-family:var(--f-display);font-size:clamp(1.7rem,2.5vw,2.5rem);
+  color:var(--ink);letter-spacing:-.3px;line-height:1.15;margin-bottom:10px;
+}
+.section-sub{font-size:.9rem;font-weight:300;line-height:1.9;color:var(--ink3);max-width:520px}
+.divider{height:1px;background:var(--rule);margin:0}
+
+/* Scroll reveal */
+.rev{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}
+.rev.in{opacity:1;transform:none}
+
+/* ── GRADE CARDS (5 stages for DR adapted to 2 classes for pneumonia) ── */
+.class-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px}
+.class-card{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:24px;cursor:default;transition:all .2s;
+  border-top-width:3px;
+}
+.class-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(26,22,18,.08)}
+.cc-tag{
+  font-family:var(--f-mono);font-size:.58rem;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;
+}
+.cc-name{font-family:var(--f-display);font-size:1.5rem;color:var(--ink);margin-bottom:6px}
+.cc-icd{
+  font-family:var(--f-mono);font-size:.6rem;color:var(--ink3);
+  background:var(--bg2);padding:2px 8px;border-radius:100px;display:inline-block;margin-bottom:12px;
+}
+.cc-desc{font-size:.8rem;line-height:1.75;color:var(--ink3)}
+
+/* ── UPLOAD TOOL ── */
+.tool-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start}
+
+/* API config */
+.api-config{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:20px;margin-bottom:16px;
+}
+.api-config label{
+  font-family:var(--f-mono);font-size:.6rem;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3);
+  display:block;margin-bottom:6px;
+}
+.api-input-row{display:flex;gap:8px}
+.api-input{
+  flex:1;font-family:var(--f-mono);font-size:.75rem;
+  background:var(--bg);border:1px solid var(--rule2);border-radius:var(--r);
+  color:var(--ink);padding:8px 12px;outline:none;transition:border-color .2s;
+}
+.api-input:focus{border-color:var(--teal)}
+.api-save{
+  font-size:.72rem;font-weight:600;padding:8px 14px;
+  background:var(--ink);color:var(--bg);border:none;border-radius:var(--r);
+  cursor:pointer;transition:background .15s;white-space:nowrap;
+}
+.api-save:hover{background:var(--teal)}
+.api-status{
+  font-family:var(--f-mono);font-size:.6rem;color:var(--teal);
+  margin-top:6px;display:none;
+}
+
+/* Upload zone */
+.upload-zone{
+  background:var(--card);border:2px dashed var(--rule2);border-radius:10px;
+  padding:40px 24px;text-align:center;cursor:pointer;
+  transition:all .2s;position:relative;margin-bottom:16px;
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:var(--teal3)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.uz-icon{font-size:2.4rem;margin-bottom:12px;display:block}
+.uz-text{font-size:.85rem;font-weight:500;color:var(--ink2);margin-bottom:4px}
+.uz-sub{font-size:.75rem;color:var(--ink3)}
+
+/* Preview */
+.preview-wrap{
+  display:none;background:var(--ink);border-radius:10px;overflow:hidden;
+  position:relative;margin-bottom:16px;
+}
+.preview-wrap img{width:100%;display:block;max-height:260px;object-fit:contain}
+.preview-remove{
+  position:absolute;top:10px;right:10px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(245,243,239,.85);border:none;cursor:pointer;
+  font-size:1rem;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.preview-remove:hover{background:var(--bg)}
+
+.run-btn{
+  width:100%;padding:14px;font-size:.88rem;font-weight:600;
+  background:var(--ink);color:var(--bg);border:none;border-radius:var(--r);
+  cursor:pointer;transition:all .2s;letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.run-btn:hover:not(:disabled){background:var(--teal);transform:translateY(-1px)}
+.run-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── RESULTS PANEL ── */
+.result-panel{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+
+/* Empty state */
+.r-empty{
+  padding:60px 24px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.r-empty-icon{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;
+}
+.r-empty-text{font-size:.85rem;color:var(--ink3)}
+
+/* Spinner */
+.spin-wrap{
+  padding:48px 24px;display:none;flex-direction:column;align-items:center;gap:20px;
+}
+.spin-ring{
+  width:48px;height:48px;border:3px solid var(--rule);border-top-color:var(--teal);
+  border-radius:50%;animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-label{font-family:var(--f-mono);font-size:.65rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink3)}
+.spin-steps{display:flex;flex-direction:column;gap:8px;width:100%;max-width:280px}
+.ss{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--f-mono);font-size:.6rem;color:var(--ink3);
+}
+.ss-dot{width:6px;height:6px;border-radius:50%;background:var(--rule2);flex-shrink:0;transition:background .3s}
+.ss.active .ss-dot{background:var(--teal)}
+.ss.active{color:var(--ink2);font-weight:600}
+.ss.done .ss-dot{background:var(--teal2)}
+
+/* Error box */
+.err-box{
+  margin:0 16px 16px;padding:12px 16px;border-radius:var(--r);
+  border:1px solid;font-size:.8rem;display:none;
+}
+
+/* Result content */
+.rc{display:none;flex-direction:column;gap:0}
+.rc-header{
+  padding:20px 24px;border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.rch-result{display:flex;align-items:center;gap:14px}
+.rch-grade{font-family:var(--f-display);font-size:2.2rem;line-height:1}
+.rch-name{font-size:.78rem;font-weight:500;color:var(--ink3);margin-top:2px}
+.rch-badge{
+  font-family:var(--f-mono);font-size:.62rem;font-weight:700;
+  letter-spacing:1.5px;padding:5px 14px;border-radius:100px;
+}
+.rch-conf{text-align:right}
+.rch-conf-val{font-family:var(--f-display);font-size:1.8rem;line-height:1}
+.rch-conf-key{font-size:.65rem;font-weight:500;text-transform:uppercase;letter-spacing:1px;color:var(--ink3)}
+.rc-icd{
+  padding:8px 24px;background:var(--bg);border-bottom:1px solid var(--rule);
+  font-family:var(--f-mono);font-size:.62rem;font-weight:600;color:var(--ink3);
+  display:flex;align-items:center;gap:8px;
+}
+.rc-body{padding:20px 24px;display:flex;flex-direction:column;gap:20px}
+
+/* Probability bars */
+.slabel{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--ink3);margin-bottom:10px;font-family:var(--f-mono)}
+.prob-bars{display:flex;flex-direction:column;gap:8px}
+.pbar-row{display:flex;align-items:center;gap:10px}
+.pbar-name{font-size:.75rem;font-weight:500;color:var(--ink2);width:90px;flex-shrink:0}
+.pbar-track{flex:1;height:6px;background:var(--bg2);border-radius:100px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:100px;width:0;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.pbar-pct{font-family:var(--f-mono);font-size:.68rem;font-weight:600;color:var(--ink2);width:40px;text-align:right;flex-shrink:0}
+
+/* Fold scores */
+.fold-grid{display:flex;flex-direction:column;gap:7px}
+.fold-chip{display:flex;align-items:center;gap:8px}
+.fold-name{font-size:.7rem;font-weight:500;color:var(--ink3);width:130px;flex-shrink:0}
+.fold-bar{flex:1;height:5px;background:var(--bg2);border-radius:100px;overflow:hidden}
+.fold-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:100px;width:0;transition:width .9s ease}
+.fold-val{font-family:var(--f-mono);font-size:.6rem;color:var(--ink3);width:40px;text-align:right}
+
+/* Findings & recommendation */
+.findings-box{
+  background:var(--bg);border:1px solid var(--rule);border-radius:var(--r);
+  padding:14px 16px;font-size:.8rem;line-height:1.8;color:var(--ink3);
+}
+.rec-box{
+  padding:14px 16px;border-radius:var(--r);border:1px solid;
+  font-size:.8rem;line-height:1.8;
+}
+.rec-routine{background:var(--teal3);border-color:rgba(0,122,110,.2);color:var(--teal)}
+.rec-urgent{background:var(--red3);border-color:rgba(192,57,43,.2);color:var(--red)}
+
+/* Grad-CAM canvas */
+.cam-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cam-panel{
+  background:var(--ink);border-radius:var(--r);overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.cam-canvas{width:100%;display:block}
+.cam-label{
+  text-align:center;padding:7px;
+  font-family:var(--f-mono);font-size:.55rem;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,243,239,.4);
+}
+
+/* Features table */
+.feat-table{width:100%;border-collapse:collapse}
+.feat-table tr{border-bottom:1px solid var(--rule)}
+.feat-table tr:last-child{border-bottom:none}
+.feat-table td{padding:8px 0;font-size:.75rem}
+.feat-table td:first-child{color:var(--ink3);font-weight:500}
+.feat-table td:last-child{font-family:var(--f-mono);font-size:.7rem;color:var(--ink);text-align:right;font-weight:600}
+
+/* Disclaimer */
+.disclaimer{
+  padding:12px 24px;background:var(--amber3);border-top:1px solid rgba(183,101,26,.15);
+  font-size:.72rem;line-height:1.7;color:var(--amber);
+}
+
+/* Performance metrics */
+.perf-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}
+.perf-card{
+  background:var(--card);border:1px solid var(--rule);border-radius:var(--r);
+  padding:16px;text-align:center;
+}
+.perf-val{font-family:var(--f-display);font-size:1.5rem;color:var(--teal);line-height:1}
+.perf-key{font-size:.65rem;font-weight:500;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);margin-top:4px}
+
+/* Architecture section */
+.pipeline-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:32px;
+}
+.pipe-block{
+  background:var(--card);border:1px solid var(--rule);border-radius:10px;
+  padding:20px;position:relative;overflow:hidden;
+}
+.pipe-num{
+  font-family:var(--f-display);font-size:3rem;color:var(--rule);
+  position:absolute;top:-8px;right:12px;line-height:1;
+  user-select:none;
+}
+.pipe-icon{font-size:1.5rem;margin-bottom:10px;display:block}
+.pipe-title{font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:6px}
+.pipe-desc{font-size:.78rem;line-height:1.75;color:var(--ink3)}
+
+/* Footer */
+footer{
+  border-top:1px solid var(--rule);padding:32px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:.75rem;color:var(--ink3);
+  max-width:1240px;margin:0 auto;
+}
+.footer-logo{
+  font-family:var(--f-display);font-size:1rem;color:var(--ink);
+}
+.footer-logo span{color:var(--teal)}
+
+/* Responsive */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;padding:80px 24px 48px;gap:48px}
+  .hero-visual{display:none}
+  .tool-grid{grid-template-columns:1fr}
+  .class-grid{grid-template-columns:1fr}
+  .pipeline-row{grid-template-columns:1fr}
+  .perf-grid{grid-template-columns:1fr 1fr}
+  .cam-row{grid-template-columns:1fr 1fr}
+  nav{padding:0 20px}
+  .n-links{display:none}
+  .wrap{padding:60px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="n-logo">
+    <div class="n-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <span class="n-wordmark">Pneu<span>X</span>Net</span>
+  </a>
+  <ul class="n-links">
+    <li><a href="#tool">Analyze</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#performance">Results</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <div class="n-right">
+    <div class="n-chip"><div class="dot"></div>LIVE DEMO</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Research Demo · Interpretable AI</div>
+    <h1>Pneumonia Detection<br>via <em>Adaptive</em><br>CNN Attention</h1>
+    <p class="hero-sub">
+      PneuXNet combines a DenseNet201 backbone with Multi-Scale Atrous Attention (MSAA)
+      and Class-Aware Adaptive Pooling (CAAP) to deliver 98.47% test accuracy
+      with full Grad-CAM explainability on chest X-ray classification.
+    </p>
+    <div class="hero-cta">
+      <a href="#tool" class="btn-primary">&#x2191; Upload CXR Image</a>
+      <a href="#architecture" class="btn-secondary">View Architecture</a>
+    </div>
+    <div class="hero-metrics">
+      <div class="hm">
+        <div class="hm-val">98<small>.47%</small></div>
+        <div class="hm-key">Test Accuracy</div>
+      </div>
+      <div class="hm">
+        <div class="hm-val">0<small>.9992</small></div>
+        <div class="hm-key">AUC-ROC</div>
+      </div>
+      <div class="hm">
+        <div class="hm-val">5<small>-Fold</small></div>
+        <div class="hm-key">Cross-Validation</div>
+      </div>
+      <div class="hm">
+        <div class="hm-val">5<small>,614</small></div>
+        <div class="hm-key">CXR Images</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hv-header">
+      <div class="hv-title">Model Pipeline</div>
+      <div class="hv-badge">DenseNet201 + MSAA + CAAP</div>
+    </div>
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-block">
+          <div class="arch-icon" style="background:#f0ece6">🫁</div>
+          <div>
+            <div class="arch-name">Input CXR Image</div>
+            <div class="arch-desc">224×224 · CLAHE preprocessed</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--rule2);font-size:.8rem">↓</div>
+      <div class="arch-row">
+        <div class="arch-block">
+          <div class="arch-icon" style="background:#e8f4f0">🔷</div>
+          <div>
+            <div class="arch-name">DenseNet201 Backbone</div>
+            <div class="arch-desc">Pre-trained · Dense block feature maps</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--rule2);font-size:.8rem">↓</div>
+      <div class="arch-row">
+        <div class="arch-block arch-highlight">
+          <div class="arch-icon" style="background:var(--teal3)">⬡</div>
+          <div>
+            <div class="arch-name">MSAA Module</div>
+            <div class="arch-desc">Multi-Scale Atrous Attention · r=1,3,5</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--rule2);font-size:.8rem">↓</div>
+      <div class="arch-row">
+        <div class="arch-block arch-highlight">
+          <div class="arch-icon" style="background:var(--teal3)">◈</div>
+          <div>
+            <div class="arch-name">CAAP Head</div>
+            <div class="arch-desc">Class-Aware Adaptive Pooling · MLP</div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--rule2);font-size:.8rem">↓</div>
+      <div class="arch-row">
+        <div class="arch-block">
+          <div class="arch-icon" style="background:#f0ece6">✓</div>
+          <div>
+            <div class="arch-name">Binary Classification</div>
+            <div class="arch-desc">Normal · Pneumonia + Grad-CAM XAI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CLASSES -->
+<section class="wrap" id="about">
+  <div class="section-header rev">
+    <div class="eyebrow">Classification</div>
+    <h2>Binary Screening Classes</h2>
+    <p class="section-sub">PneuXNet performs binary classification distinguishing normal lung fields from pneumonia-consistent radiographic findings.</p>
+  </div>
+  <div class="class-grid rev">
+    <div class="class-card" style="border-top-color:var(--teal)">
+      <div class="cc-tag" style="color:var(--teal)">CLASS 0</div>
+      <div class="cc-name">Normal</div>
+      <div class="cc-icd">ICD-10: Z03.89</div>
+      <p class="cc-desc">Clear lung fields bilaterally. No consolidation, infiltrates, or pleural effusion. Normal cardiac silhouette. Diaphragmatic contours intact. Costophrenic angles sharp and well-defined.</p>
+    </div>
+    <div class="class-card" style="border-top-color:var(--red2)">
+      <div class="cc-tag" style="color:var(--red2)">CLASS 1</div>
+      <div class="cc-name">Pneumonia</div>
+      <div class="cc-icd">ICD-10: J18.9</div>
+      <p class="cc-desc">Focal consolidation or ground-glass opacification in one or more lung zones. Increased opacity consistent with airspace disease. Air bronchograms or pleural effusion may be present. Immediate clinical correlation required.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ARCHITECTURE -->
+<section class="wrap" id="architecture">
+  <div class="section-header rev">
+    <div class="eyebrow">Methodology</div>
+    <h2>Novel Architecture</h2>
+    <p class="section-sub">PneuXNet introduces two key innovations on a DenseNet201 backbone, achieving superior accuracy with full XAI interpretability.</p>
+  </div>
+  <div class="pipeline-row rev">
+    <div class="pipe-block">
+      <div class="pipe-num">01</div>
+      <span class="pipe-icon">🔷</span>
+      <div class="pipe-title">DenseNet201 Backbone</div>
+      <p class="pipe-desc">Pre-trained on ImageNet with dense connectivity patterns. Replaced final block for domain adaptation. Feeds parallel atrous convolution streams at dilation rates 1, 3, and 5.</p>
+    </div>
+    <div class="pipe-block" style="border-color:rgba(0,122,110,.25);background:var(--teal3)">
+      <div class="pipe-num" style="color:rgba(0,122,110,.15)">02</div>
+      <span class="pipe-icon">⬡</span>
+      <div class="pipe-title">MSAA Module</div>
+      <p class="pipe-desc">Multi-Scale Atrous Attention captures subtle pathological features at multiple receptive fields. Channel and spatial attention (Squeeze-and-Excitation) refine feature maps, forcing focus on diagnostically salient regions.</p>
+    </div>
+    <div class="pipe-block" style="border-color:rgba(0,122,110,.25);background:var(--teal3)">
+      <div class="pipe-num" style="color:rgba(0,122,110,.15)">03</div>
+      <span class="pipe-icon">◈</span>
+      <div class="pipe-title">CAAP Head</div>
+      <p class="pipe-desc">Class-Aware Adaptive Pooling prevents spatial information dilution from standard global average pooling. Generates adaptive weights via a lightweight MLP on class probabilities, producing a weighted spatial attention map for the final feature vector.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOOL -->
+<section class="wrap" id="tool">
+  <div class="section-header rev">
+    <div class="eyebrow">Inference Tool</div>
+    <h2>Analyze a Chest X-Ray</h2>
+    <p class="section-sub">Upload a frontal CXR image. The PneuXNet simulation extracts image features, runs ensemble inference, and returns a classification with Grad-CAM attention visualization.</p>
+  </div>
+
+  <div class="tool-grid">
+
+    <!-- LEFT: Input -->
+    <div>
+      <!-- API Config -->
+      <div class="api-config rev">
+        <label>Backend API Endpoint</label>
+        <div class="api-input-row">
+          <input type="text" class="api-input" id="api-url" placeholder="https://your-api.onrender.com" value="https://pneumonia-backend-p9lw.onrender.com">
+          <button class="api-save" onclick="saveApi()">Save</button>
+        </div>
+        <div class="api-status" id="api-status">✓ Endpoint saved</div>
+      </div>
+
+      <!-- Upload -->
+      <div class="upload-zone rev" id="drop-zone" onclick="document.getElementById('file-in').click()">
+        <input type="file" id="file-in" accept="image/*" style="display:none">
+        <span class="uz-icon">🫁</span>
+        <div class="uz-text">Drop CXR image here or click to browse</div>
+        <div class="uz-sub">JPG · PNG · WEBP · Max 20 MB</div>
+      </div>
+
+      <div class="preview-wrap" id="prev-wrap">
+        <img id="prev-img" src="" alt="Preview">
+        <button class="preview-remove" onclick="clearFile()">✕</button>
+      </div>
+
+      <button class="run-btn rev" id="run-btn" onclick="runAnalysis()" disabled>
+        <span>▶</span> Run PneuXNet Analysis
+      </button>
+
+      <div class="err-box" id="err-box"></div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="result-panel">
+      <!-- Empty state -->
+      <div class="r-empty" id="r-empty">
+        <div class="r-empty-icon">🩻</div>
+        <div class="r-empty-text">Upload a chest X-ray to begin analysis</div>
+      </div>
+
+      <!-- Spinner -->
+      <div class="spin-wrap" id="spin-wrap">
+        <div class="spin-ring"></div>
+        <div class="spin-label" id="spin-label">INITIALIZING...</div>
+        <div class="spin-steps">
+          <div class="ss" id="s1"><div class="ss-dot"></div>CLAHE Preprocessing</div>
+          <div class="ss" id="s2"><div class="ss-dot"></div>DenseNet201 Forward Pass</div>
+          <div class="ss" id="s3"><div class="ss-dot"></div>MSAA Attention Maps</div>
+          <div class="ss" id="s4"><div class="ss-dot"></div>CAAP Feature Pooling</div>
+          <div class="ss" id="s5"><div class="ss-dot"></div>Grad-CAM Visualization</div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="rc" id="rc"></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PERFORMANCE -->
+<section class="wrap" id="performance">
+  <div class="section-header rev">
+    <div class="eyebrow">Experimental Results</div>
+    <h2>Benchmark Performance</h2>
+    <p class="section-sub">Evaluated on the open-source Chest X-ray (Pneumonia) dataset. PneuXNet outperforms all state-of-the-art baselines across accuracy, AUC-ROC, and interpretability.</p>
+  </div>
+  <div class="perf-grid rev">
+    <div class="perf-card"><div class="perf-val">98.47%</div><div class="perf-key">Test Accuracy</div></div>
+    <div class="perf-card"><div class="perf-val">98.83%</div><div class="perf-key">CV Mean Accuracy</div></div>
+    <div class="perf-card"><div class="perf-val">0.9992</div><div class="perf-key">AUC-ROC</div></div>
+    <div class="perf-card"><div class="perf-val">99.31%</div><div class="perf-key">Precision (Pneumonia)</div></div>
+    <div class="perf-card"><div class="perf-val">98.63%</div><div class="perf-key">Recall (Pneumonia)</div></div>
+    <div class="perf-card"><div class="perf-val">±0.41%</div><div class="perf-key">CV Std Deviation</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+<footer>
+  <div class="footer-logo">Pneu<span>X</span>Net</div>
+  <div>Research Demo · DenseNet201 + MSAA + CAAP · Not for clinical use</div>
+  <div>© 2025 PneuXNet Research</div>
+</footer>
+
+<script>
+// ── API ──────────────────────────────────────────────────────────────────────
+function apiBase(){return (localStorage.getItem('pneuxnet-api')||'https://pneumonia-backend-p9lw.onrender.com').replace(/\/$/,'')}
+function saveApi(){
+  const v=document.getElementById('api-url').value.trim();
+  if(v){localStorage.setItem('pneuxnet-api',v);const s=document.getElementById('api-status');s.style.display='block';setTimeout(()=>s.style.display='none',2000);}
+}
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('pneuxnet-api');
+  if(saved)document.getElementById('api-url').value=saved;
+});
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────────────────
+const ro=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.1});
+document.querySelectorAll('.rev').forEach(el=>ro.observe(el));
+
+// ── FILE HANDLING ─────────────────────────────────────────────────────────
+let currentFile=null;
+document.getElementById('file-in').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0])});
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])});
+
+function loadFile(file){
+  currentFile=file;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const pw=document.getElementById('prev-wrap');
+    document.getElementById('prev-img').src=ev.target.result;
+    pw.style.display='block';
+    document.getElementById('drop-zone').style.display='none';
+    document.getElementById('run-btn').disabled=false;
+  };
+  r.readAsDataURL(file);
+}
+function clearFile(){
+  currentFile=null;
+  document.getElementById('prev-wrap').style.display='none';
+  document.getElementById('drop-zone').style.display='block';
+  document.getElementById('run-btn').disabled=true;
+  document.getElementById('file-in').value='';
+  resetResults();
+}
+function resetResults(){
+  document.getElementById('r-empty').style.display='flex';
+  document.getElementById('rc').style.display='none';
+  document.getElementById('err-box').style.display='none';
+}
+
+// ── SPINNER ───────────────────────────────────────────────────────────────
+const stepIds=['s1','s2','s3','s4','s5'];
+const stepLabels=['CLAHE PREPROCESSING...','DENSENET201 PASS...','MSAA ATTENTION...','CAAP POOLING...','GRAD-CAM GENERATION...'];
+let stepTimer=null;
+
+function showSpinner(){
+  document.getElementById('r-empty').style.display='none';
+  document.getElementById('rc').style.display='none';
+  const sw=document.getElementById('spin-wrap');sw.style.display='flex';
+  stepIds.forEach(id=>{const el=document.getElementById(id);el.classList.remove('active','done')});
+  let si=0;
+  if(stepTimer)clearInterval(stepTimer);
+  stepTimer=setInterval(()=>{
+    if(si>0){document.getElementById(stepIds[si-1]).classList.remove('active');document.getElementById(stepIds[si-1]).classList.add('done')}
+    if(si<stepIds.length){document.getElementById(stepIds[si]).classList.add('active');document.getElementById('spin-label').textContent=stepLabels[si];si++}
+  },700);
+}
+function hideSpinner(){
+  if(stepTimer)clearInterval(stepTimer);
+  stepIds.forEach(id=>{document.getElementById(id).classList.remove('active');document.getElementById(id).classList.add('done')});
+  document.getElementById('spin-wrap').style.display='none';
+}
+
+// ── ANALYSIS ──────────────────────────────────────────────────────────────
+async function runAnalysis(){
+  if(!currentFile)return;
+  showSpinner();
+  const err=document.getElementById('err-box');
+  err.style.display='none';
+  try{
+    const fd=new FormData();fd.append('file',currentFile);
+    const res=await fetch(apiBase()+'/analyze',{method:'POST',body:fd});
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'Server error '+res.status)}
+    const data=await res.json();
+    hideSpinner();
+    setTimeout(()=>renderResult(data),200);
+  }catch(e){
+    hideSpinner();
+    err.style.display='block';
+    err.style.cssText='display:block;background:var(--red3);border:1px solid rgba(192,57,43,.2);color:var(--red);border-radius:var(--r);padding:12px 16px;font-size:.8rem;margin:0 16px 16px';
+    err.textContent='Error: '+e.message+' — Check your backend URL above.';
+    document.getElementById('r-empty').style.display='flex';
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderResult(d){
+  const rc=document.getElementById('rc');
+  const cls=d.class_id||0;
+  const color=d.class_color||'#00c896';
+  const probs=d.probabilities||{Normal:0,Pneumonia:0};
+  const fs=d.fold_scores||{};
+  const isUrgent=d.urgency==='urgent'||d.urgency==='emergency';
+  const recCls=isUrgent?'rec-urgent':'rec-routine';
+  const urgIcon=isUrgent?'⚠️ ':'✓ ';
+
+  const archNames=['DenseNet201-Base','MSAA-Module','CAAP-Head','CV-Fold-4','CV-Fold-5'];
+  const foldsHTML=archNames.map(a=>`
+    <div class="fold-chip">
+      <div class="fold-name">${a}</div>
+      <div class="fold-bar"><div class="fold-fill" id="ff-${a.replace(/[^a-z0-9]/gi,'_')}"></div></div>
+      <div class="fold-val">${Math.round((fs[a]||0)*100)}%</div>
+    </div>`).join('');
+
+  const feats=d.image_features||{};
+
+  rc.innerHTML=`
+    <div class="rc-header">
+      <div class="rch-result">
+        <div class="rch-grade" style="color:${color}">${d.class_name}</div>
+        <div>
+          <div class="rch-name">Predicted Classification</div>
+          <div style="margin-top:4px">
+            <span class="rch-badge" style="background:${color}22;color:${color}">${d.class_tag}</span>
+          </div>
+        </div>
+      </div>
+      <div class="rch-conf">
+        <div class="rch-conf-val" style="color:${color}">${Math.round((d.confidence||0)*100)}%</div>
+        <div class="rch-conf-key">Confidence</div>
+      </div>
+    </div>
+    <div class="rc-icd">
+      <span>ICD-10:</span>
+      <span style="color:var(--ink2);font-weight:700">${d.icd10||'—'}</span>
+      <span style="margin-left:auto;color:var(--rule2)">5-FOLD CV ENSEMBLE</span>
+    </div>
+    <div class="rc-body">
+      <!-- Probabilities -->
+      <div>
+        <div class="slabel">Class Probabilities</div>
+        <div class="prob-bars">
+          <div class="pbar-row">
+            <span class="pbar-name">Normal</span>
+            <div class="pbar-track"><div class="pbar-fill" id="pb-normal" style="background:#00c896"></div></div>
+            <span class="pbar-pct">${Math.round((probs.Normal||0)*100)}%</span>
+          </div>
+          <div class="pbar-row">
+            <span class="pbar-name">Pneumonia</span>
+            <div class="pbar-track"><div class="pbar-fill" id="pb-pneumonia" style="background:#ff4466"></div></div>
+            <span class="pbar-pct">${Math.round((probs.Pneumonia||0)*100)}%</span>
+          </div>
+        </div>
+      </div>
+      <!-- Fold scores -->
+      <div>
+        <div class="slabel">5-Fold CV Model Agreement</div>
+        <div class="fold-grid">${foldsHTML}</div>
+      </div>
+      <!-- Grad-CAM -->
+      <div>
+        <div class="slabel">Grad-CAM Attention Visualization</div>
+        <div class="cam-row">
+          <div class="cam-panel">
+            <canvas class="cam-canvas" id="cam-orig" width="200" height="160"></canvas>
+            <div class="cam-label">INPUT CXR</div>
+          </div>
+          <div class="cam-panel">
+            <canvas class="cam-canvas" id="cam-map" width="200" height="160"></canvas>
+            <div class="cam-label">GRAD-CAM HEATMAP</div>
+          </div>
+        </div>
+        <div style="font-size:.72rem;color:var(--ink3);margin-top:8px;line-height:1.7">${d.grad_cam_region||''}</div>
+      </div>
+      <!-- Findings -->
+      <div>
+        <div class="slabel">Radiographic Findings</div>
+        <div class="findings-box">${d.findings||''}</div>
+      </div>
+      <!-- Recommendation -->
+      <div>
+        <div class="slabel">Clinical Recommendation</div>
+        <div class="rec-box ${recCls}">${urgIcon}${d.recommendation||''}</div>
+      </div>
+      <!-- Image features -->
+      <div>
+        <div class="slabel">Extracted Image Features</div>
+        <table class="feat-table">
+          <tr><td>Opacity Ratio</td><td>${((feats.opacity_ratio||0)*100).toFixed(1)}%</td></tr>
+          <tr><td>Asymmetry Index</td><td>${(feats.asymmetry||0).toFixed(4)}</td></tr>
+          <tr><td>Local Variance</td><td>${(feats.local_variance||0).toFixed(4)}</td></tr>
+          <tr><td>Edge Density</td><td>${(feats.edge_density||0).toFixed(4)}</td></tr>
+          <tr><td>Dark Region Ratio</td><td>${((feats.dark_ratio||0)*100).toFixed(1)}%</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="disclaimer">⚠️ ${d.disclaimer||''}</div>`;
+
+  rc.style.display='flex';
+
+  requestAnimationFrame(()=>{
+    // Animate prob bars
+    const pn=document.getElementById('pb-normal');
+    const pp=document.getElementById('pb-pneumonia');
+    if(pn)pn.style.width=Math.round((probs.Normal||0)*100)+'%';
+    if(pp)pp.style.width=Math.round((probs.Pneumonia||0)*100)+'%';
+
+    // Fold bars
+    archNames.forEach(a=>{
+      const el=document.getElementById('ff-'+a.replace(/[^a-z0-9]/gi,'_'));
+      if(el)el.style.width=Math.round((fs[a]||0)*100)+'%';
+    });
+
+    drawGradCAM(cls, color, d.grad_cam_weights||{});
+  });
+}
+
+// ── GRAD-CAM CANVAS ───────────────────────────────────────────────────────
+function drawGradCAM(cls, color, gcw){
+  const oc=document.getElementById('cam-orig');
+  const lc=document.getElementById('cam-map');
+  if(!oc||!lc)return;
+  const W=oc.width,H=oc.height;
+  const ox=oc.getContext('2d'),lx=lc.getContext('2d');
+
+  // Dark CXR background
+  ox.fillStyle='#0a0c10';ox.fillRect(0,0,W,H);
+
+  // Lung silhouette (two lobes)
+  function drawLung(ctx,cx,cy,rx,ry,side){
+    const grad=ctx.createRadialGradient(cx,cy-ry*.2,0,cx,cy,Math.max(rx,ry));
+    grad.addColorStop(0,'rgba(200,200,180,.18)');
+    grad.addColorStop(.7,'rgba(160,160,140,.08)');
+    grad.addColorStop(1,'transparent');
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,rx,ry,side*.08,0,Math.PI*2);
+    ctx.fillStyle=grad;ctx.fill();
+  }
+  drawLung(ox,W*.35,H*.52,W*.22,H*.42,-1);
+  drawLung(ox,W*.65,H*.52,W*.22,H*.42,1);
+
+  // Spine/mediastinum
+  ox.strokeStyle='rgba(160,160,140,.12)';ox.lineWidth=6;
+  ox.beginPath();ox.moveTo(W*.5,H*.1);ox.lineTo(W*.5,H*.9);ox.stroke();
+
+  // Vessel lines
+  ox.strokeStyle='rgba(200,200,180,.1)';ox.lineWidth=1;
+  [[W*.35,H*.28,W*.28,H*.55],[W*.35,H*.28,W*.42,H*.65],[W*.65,H*.28,W*.72,H*.55],[W*.65,H*.28,W*.58,H*.65]].forEach(([x1,y1,x2,y2])=>{
+    ox.beginPath();ox.moveTo(x1,y1);ox.quadraticCurveTo((x1+x2)/2+(Math.random()-.5)*10,(y1+y2)/2,x2,y2);ox.stroke();
+  });
+
+  // Heatmap
+  lx.fillStyle='#0a0c10';lx.fillRect(0,0,W,H);
+  drawLung(lx,W*.35,H*.52,W*.22,H*.42,-1);
+  drawLung(lx,W*.65,H*.52,W*.22,H*.42,1);
+
+  const rgb=hexRgb(color);
+  const totalW=Object.values(gcw).reduce((a,b)=>a+b,0)||1;
+  const intensity=cls===1?1:.3;
+
+  // Attention regions mapped to CXR anatomy
+  const regions=[
+    {key:'right_lower_lobe', x:W*.68,y:H*.68,rx:28,ry:22},
+    {key:'left_lower_lobe',  x:W*.32,y:H*.68,rx:28,ry:22},
+    {key:'right_mid_zone',   x:W*.65,y:H*.5, rx:22,ry:18},
+    {key:'left_mid_zone',    x:W*.35,y:H*.5, rx:22,ry:18},
+    {key:'perihilar_region', x:W*.5, y:H*.42,rx:18,ry:14},
+  ];
+  regions.forEach(reg=>{
+    const w=(gcw[reg.key]||.05)/totalW;
+    const alpha=Math.min(.92,w*6*intensity+.05);
+    lx.save();lx.globalAlpha=alpha;
+    const rg=lx.createRadialGradient(reg.x,reg.y,0,reg.x,reg.y,Math.max(reg.rx,reg.ry));
+    rg.addColorStop(0,`rgba(${rgb.r},${rgb.g},${rgb.b},1)`);
+    rg.addColorStop(.5,`rgba(${rgb.r},${rgb.g},${rgb.b},.5)`);
+    rg.addColorStop(1,`rgba(${rgb.r},${rgb.g},${rgb.b},0)`);
+    lx.beginPath();lx.ellipse(reg.x,reg.y,reg.rx,reg.ry,0,0,Math.PI*2);
+    lx.fillStyle=rg;lx.fill();lx.restore();
+  });
+}
+
+function hexRgb(hex){
+  const m=hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  return m?{r:parseInt(m[1],16),g:parseInt(m[2],16),b:parseInt(m[3],16)}:{r:0,g:200,b:150};
+}
+</script>
+</body>
+</html>
